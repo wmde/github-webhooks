@@ -7,7 +7,6 @@ namespace WMDE\Fundraising\Deployment;
  * @author Gabriel Birke < gabriel.birke@wikimedia.de >
  */
 interface ReleaseState {
-	public function hasUndeployedReleases( string $branchName ) : bool;
 
 	public function deploymentInProcess( $branchName ) : bool;
 

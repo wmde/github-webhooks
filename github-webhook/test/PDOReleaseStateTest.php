@@ -26,11 +26,6 @@ class DeploymentQueueTest extends \PHPUnit_Framework_TestCase {
 		$this->db->exec( file_get_contents( __DIR__ . '/../db/schema.sql' ) );
 	}
 
-	public function testNewQueueHasNoUndeployedReleases() {
-		$releaseState = new PDOReleaseState( $this->db );
-		$this->assertFalse( $releaseState->hasUndeployedReleases( self::BRANCH_NAME ) );
-	}
-
 	public function testGivenNewQueue_getNextReleaseReturnsFalse() {
 		$releaseState = new PDOReleaseState( $this->db );
 		$this->assertSame( [], $releaseState->getNextReleases() );
