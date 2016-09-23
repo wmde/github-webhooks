@@ -1,0 +1,13 @@
+{
+    "name": "wmde/fundraising-github-webhook",
+    "require-dev": {
+        "phpunit/phpunit": "^5.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "WMDE\\Fundraising\\Deployment\\": "src/"
+        }
+    },
+    "license": "GPL 2.0",
+    "require": {}
+}
