@@ -26,9 +26,9 @@ class DeploymentQueueTest extends \PHPUnit_Framework_TestCase {
 		$this->db->exec( file_get_contents( __DIR__ . '/../db/schema.sql' ) );
 	}
 
-	public function testGivenNewQueue_getNextReleaseReturnsFalse() {
+	public function testGivenNewRelaseState_getLatestReleaseReturnsFalse() {
 		$releaseState = new PDOReleaseState( $this->db );
-		$this->assertSame( [], $releaseState->getNextReleases() );
+		$this->assertSame( [], $releaseState->getLatestReleases() );
 	}
 
 	public function testWhenAddingARelease_itIsUndeployed() {
@@ -43,35 +43,35 @@ class DeploymentQueueTest extends \PHPUnit_Framework_TestCase {
 		$this->assertFalse( $releaseState->deploymentInProcess( self::BRANCH_NAME ) );
 	}
 
-	public function testGivenSeveralReleases_getNextReleaseReturnsTheMostRecent() {
+	public function testGivenSeveralReleases_getLatestReleasesReturnsTheMostRecent() {
 		$releaseState = new PDOReleaseState( $this->db );
 		$releaseState->addRelease( self::BRANCH_NAME, self::FIRST_RELEASE, '2016-01-02 09:00:00' );
 		$releaseState->addRelease( self::BRANCH_NAME, self::SECOND_RELEASE, '2016-01-02 10:00:00' );
 		$releaseState->addRelease( self::BRANCH_NAME, self::THIRD_RELEASE, '2016-01-02 11:00:00' );
 
 		$expectedReleases = [ self::BRANCH_NAME => self::THIRD_RELEASE ];
-		$this->assertEquals( $expectedReleases, $releaseState->getNextReleases() );
+		$this->assertEquals( $expectedReleases, $releaseState->getLatestReleases() );
 	}
 
 	public function testWhenDeployingARelease_deploymentInProcessReturnsTrue() {
 		$releaseState = new PDOReleaseState( $this->db );
 		$releaseState->addRelease( self::BRANCH_NAME, self::FIRST_RELEASE );
-		$releaseState->startDeployment( self::FIRST_RELEASE );
+		$releaseState->markDeploymentAsStarted( self::FIRST_RELEASE );
 		$this->assertTrue( $releaseState->deploymentInProcess( self::BRANCH_NAME ) );
 	}
 
 	public function testWhenAddingAndDeployingARelease_itIsNotUndeployed() {
 		$releaseState = new PDOReleaseState( $this->db );
 		$releaseState->addRelease( self::BRANCH_NAME, self::FIRST_RELEASE );
-		$releaseState->startDeployment( self::FIRST_RELEASE );
+		$releaseState->markDeploymentAsStarted( self::FIRST_RELEASE );
 		$this->assertFalse( $releaseState->hasUndeployedReleases( self::BRANCH_NAME ) );
 	}
 
 	public function testWhenEndingADeployment_deploymentInProcessReturnsFalse() {
 		$releaseState = new PDOReleaseState( $this->db );
 		$releaseState->addRelease( self::BRANCH_NAME, self::FIRST_RELEASE );
-		$releaseState->startDeployment( self::FIRST_RELEASE );
-		$releaseState->endDeployment( self::FIRST_RELEASE );
+		$releaseState->markDeploymentAsStarted( self::FIRST_RELEASE );
+		$releaseState->markDeploymentAsFinished( self::FIRST_RELEASE );
 		$this->assertFalse( $releaseState->deploymentInProcess( self::BRANCH_NAME ) );
 		$this->assertFalse( $releaseState->hasUndeployedReleases( self::BRANCH_NAME ) );
 	}
@@ -81,8 +81,8 @@ class DeploymentQueueTest extends \PHPUnit_Framework_TestCase {
 		$releaseState->addRelease( self::BRANCH_NAME, self::FIRST_RELEASE, '2016-01-02 09:00:00' );
 		$releaseState->addRelease( self::BRANCH_NAME, self::SECOND_RELEASE, '2016-01-02 10:00:00' );
 		$releaseState->addRelease( self::BRANCH_NAME, self::THIRD_RELEASE, '2016-01-02 11:00:00' );
-		$releaseState->startDeployment( self::THIRD_RELEASE );
-		$releaseState->endDeployment( self::THIRD_RELEASE );
+		$releaseState->markDeploymentAsStarted( self::THIRD_RELEASE );
+		$releaseState->markDeploymentAsFinished( self::THIRD_RELEASE );
 
 		$this->assertFalse( $releaseState->deploymentInProcess( self::BRANCH_NAME ) );
 		$this->assertFalse( $releaseState->hasUndeployedReleases( self::BRANCH_NAME ) );
@@ -93,13 +93,13 @@ class DeploymentQueueTest extends \PHPUnit_Framework_TestCase {
 		$releaseState->addRelease( self::BRANCH_NAME, self::FIRST_RELEASE, '2016-01-02 09:00:00' );
 		$releaseState->addRelease( self::BRANCH_NAME, self::SECOND_RELEASE, '2016-01-02 10:00:00' );
 		$releaseState->addRelease( self::BRANCH_NAME, self::THIRD_RELEASE, '2016-01-02 11:00:00' );
-		$releaseState->startDeployment( self::SECOND_RELEASE );
-		$releaseState->endDeployment( self::SECOND_RELEASE );
+		$releaseState->markDeploymentAsStarted( self::SECOND_RELEASE );
+		$releaseState->markDeploymentAsFinished( self::SECOND_RELEASE );
 
 		$this->assertFalse( $releaseState->deploymentInProcess( self::BRANCH_NAME ) );
 		$this->assertTrue( $releaseState->hasUndeployedReleases( self::BRANCH_NAME ) );
 		$expectedReleases = [ self::BRANCH_NAME => self::THIRD_RELEASE ];
-		$this->assertEquals( $expectedReleases, $releaseState->getNextReleases() );
+		$this->assertEquals( $expectedReleases, $releaseState->getLatestReleases() );
 	}
 
 }

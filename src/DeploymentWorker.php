@@ -19,11 +19,11 @@ class DeploymentWorker {
 	}
 
 	public function run() {
-		foreach( $this->releaseState->getNextReleases() as $branchName => $refId ) {
+		foreach($this->releaseState->getLatestReleases() as $branchName => $refId ) {
 			if ( !$this->releaseState->deploymentInProcess( $branchName ) ) {
-				$this->releaseState->startDeployment( $refId );
+				$this->releaseState->markDeploymentAsStarted( $refId );
 				call_user_func( $this->deploymentFunctions[ $branchName ], $branchName, $refId );
-				$this->releaseState->endDeployment( $refId );
+				$this->releaseState->markDeploymentAsFinished( $refId );
 			}
 
 		}

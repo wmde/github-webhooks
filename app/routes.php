@@ -7,7 +7,7 @@ use Symfony\Component\HttpFoundation\Response;
  * @global \Silex\Application $app
  */
 
-$app->post( '/webhook', function ( Request $request ) use ($app) {
+$app->post( '/deploy-fundraising', function ( Request $request ) use ($app) {
 	if ( !$request->headers->has( 'X-GitHub-Event' ) ) {
 		return new Response( 'Bad request - X-GitHub-Event header missing', Response::HTTP_BAD_REQUEST );
 	}
@@ -18,6 +18,13 @@ $app->post( '/webhook', function ( Request $request ) use ($app) {
 	if( !$payload ) {
 		return new Response( 'Bad request - Could not decode payload', Response::HTTP_BAD_REQUEST );
 	}
-	$app['payload_dispatcher']->dispatch( $payload );
+
+	if ( !empty( $payload->repository->full_name ) &&
+		!empty( $payload->ref ) &&
+		$payload->repository->full_name === 'wmde/FundraisingFrontend' &&
+		in_array( $payload->ref, [ 'refs/heads/master', 'refs/heads/production' ] ) ) {
+		$app['release_state']->addRelease( $this->repoFullName . '/' . $this->branchName, $payload->after );
+	}
+
 	return new Response( 'Ok' );
 } );

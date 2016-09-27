@@ -28,7 +28,7 @@ class PDOReleaseState implements ReleaseState {
 		return $stmt->fetchColumn() > 0;
 	}
 
-	public function getNextReleases(): array {
+	public function getLatestReleases(): array {
 		$stmt = $this->db->prepare(
 			'SELECT branch, refid FROM releases WHERE ts_ended IS NULL AND ts_started IS NULL GROUP BY branch ORDER BY ts_added DESC'
 		);
@@ -49,7 +49,7 @@ class PDOReleaseState implements ReleaseState {
 		] );
 	}
 
-	public function startDeployment( string $refId, string $now = '' ) {
+	public function markDeploymentAsStarted( string $refId, string $now = '' ) {
 		$stmt = $this->db->prepare( 'UPDATE releases SET ts_started = :timestampStarted WHERE refid = :refId' );
 		$stmt->execute( [
 			'refId' => $refId,
@@ -57,7 +57,7 @@ class PDOReleaseState implements ReleaseState {
 		] );
 	}
 
-	public function endDeployment( string $refId, string $now = '' ) {
+	public function markDeploymentAsFinished( string $refId, string $now = '' ) {
 		$stmt = $this->db->prepare( 'UPDATE releases SET ts_ended = :timestampEnded WHERE refid = :refId' );
 		$stmt->execute( [
 			'refId' => $refId,
