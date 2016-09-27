@@ -10,5 +10,7 @@
         }
     },
     "license": "GPL 2.0",
-    "require": {}
+    "require": {
+        "silex/silex": "~2.0"
+    }
 }
