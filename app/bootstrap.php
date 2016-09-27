@@ -6,6 +6,8 @@ use WMDE\Fundraising\Deployment\PDOReleaseState;
 
 // Initialize services
 
+$app = new Silex\Application();
+
 $app['db'] = function ( $app ) {
 	return new \PDO( $app['dsn'] );
 };
@@ -14,3 +16,4 @@ $app['release_state'] = function ( $app ) {
 	return new PDOReleaseState( $app['db'] );
 };
 
+return $app;

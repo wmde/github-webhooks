@@ -7,7 +7,7 @@ use Symfony\Component\HttpFoundation\Response;
  * @global \Silex\Application $app
  */
 
-$app->post( '/deploy-fundraising', function ( Request $request ) use ($app) {
+$app->post( '/deploy', function ( Request $request ) use ($app) {
 	if ( !$request->headers->has( 'X-GitHub-Event' ) ) {
 		return new Response( 'Bad request - X-GitHub-Event header missing', Response::HTTP_BAD_REQUEST );
 	}
@@ -23,7 +23,8 @@ $app->post( '/deploy-fundraising', function ( Request $request ) use ($app) {
 		!empty( $payload->ref ) &&
 		$payload->repository->full_name === 'wmde/FundraisingFrontend' &&
 		in_array( $payload->ref, [ 'refs/heads/master', 'refs/heads/production' ] ) ) {
-		$app['release_state']->addRelease( $this->repoFullName . '/' . $this->branchName, $payload->after );
+		$branchName = str_replace( 'refs/heads/', '', $payload->ref );
+		$app['release_state']->addRelease( $branchName, $payload->after );
 	}
 
 	return new Response( 'Ok' );
