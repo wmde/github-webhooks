@@ -20,7 +20,7 @@ class ReleaseStateWriter {
 	}
 
 	public function addRelease( string $branchName, string $refId, $now = '' ) {
-		$stmt = $this->db->prepare( 'INSERT INTO releases VALUES( :refId, :branchName, :timestampAdded, NULL, NULL )' );
+		$stmt = $this->db->prepare( 'INSERT INTO releases VALUES( :refId, :branchName, :timestampAdded, NULL, NULL, 0 )' );
 		$stmt->execute( [
 			'branchName' => $branchName,
 			'refId' => $refId,
