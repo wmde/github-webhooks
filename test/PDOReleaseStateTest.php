@@ -3,8 +3,9 @@
 namespace WMDE\Fundraising\Deployment\Tests;
 
 use WMDE\Fundraising\Deployment\PDOReleaseState;
+use WMDE\Fundraising\Deployment\ReleaseStateWriter;
 
-class DeploymentQueueTest extends \PHPUnit_Framework_TestCase {
+class PDOReleaseStateTest extends \PHPUnit_Framework_TestCase {
 	
 	const BRANCH_NAME = 'testBranch';
 	const FIRST_RELEASE = 'deadbeef';
@@ -16,9 +17,16 @@ class DeploymentQueueTest extends \PHPUnit_Framework_TestCase {
 	 */
 	private $db;
 
+	/**
+	 * @var ReleaseStateWriter
+	 */
+	private $releaseStateWriter;
+
 	protected function setUp() {
 		$this->db = new \PDO( 'sqlite::memory:' );
 		$this->db->setAttribute( \PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+		$this->releaseStateWriter = new ReleaseStateWriter( $this->db );
+
 		$this->setupDBTable();
 	}
 
@@ -26,80 +34,87 @@ class DeploymentQueueTest extends \PHPUnit_Framework_TestCase {
 		$this->db->exec( file_get_contents( __DIR__ . '/../db/schema.sql' ) );
 	}
 
-	public function testGivenNewRelaseState_getLatestReleaseReturnsFalse() {
-		$releaseState = new PDOReleaseState( $this->db );
-		$this->assertSame( [], $releaseState->getLatestReleases() );
+	public function testGivenNewRelaseState_itHasNoUndeployedReleases() {
+		$releaseState = new PDOReleaseState( $this->db, self::BRANCH_NAME );
+		$this->assertFalse( $releaseState->hasUndeployedReleases() );
 	}
 
 	public function testWhenAddingARelease_itIsUndeployed() {
-		$releaseState = new PDOReleaseState( $this->db );
-		$releaseState->addRelease( self::BRANCH_NAME, self::FIRST_RELEASE );
-		$this->assertTrue( $releaseState->hasUndeployedReleases( self::BRANCH_NAME ) );
+		$releaseState = new PDOReleaseState( $this->db, self::BRANCH_NAME );
+		$this->insertFirstRelease();
+
+		$this->assertTrue( $releaseState->hasUndeployedReleases() );
 	}
 
 	public function testWhenAddingARelease_deploymentInProcessReturnsFalse() {
-		$releaseState = new PDOReleaseState( $this->db );
-		$releaseState->addRelease( self::BRANCH_NAME, self::FIRST_RELEASE );
-		$this->assertFalse( $releaseState->deploymentInProcess( self::BRANCH_NAME ) );
+		$releaseState = new PDOReleaseState( $this->db, self::BRANCH_NAME );
+		$this->insertFirstRelease();
+
+		$this->assertFalse( $releaseState->deploymentInProcess() );
 	}
 
 	public function testGivenSeveralReleases_getLatestReleasesReturnsTheMostRecent() {
-		$releaseState = new PDOReleaseState( $this->db );
-		$releaseState->addRelease( self::BRANCH_NAME, self::FIRST_RELEASE, '2016-01-02 09:00:00' );
-		$releaseState->addRelease( self::BRANCH_NAME, self::SECOND_RELEASE, '2016-01-02 10:00:00' );
-		$releaseState->addRelease( self::BRANCH_NAME, self::THIRD_RELEASE, '2016-01-02 11:00:00' );
+		$releaseState = new PDOReleaseState( $this->db, self::BRANCH_NAME );
+		$this->insertThreeReleases();
 
-		$expectedReleases = [ self::BRANCH_NAME => self::THIRD_RELEASE ];
-		$this->assertEquals( $expectedReleases, $releaseState->getLatestReleases() );
+		$this->assertEquals( self::THIRD_RELEASE, $releaseState->getLatestReleaseId() );
 	}
 
-	public function testWhenDeployingARelease_deploymentInProcessReturnsTrue() {
-		$releaseState = new PDOReleaseState( $this->db );
-		$releaseState->addRelease( self::BRANCH_NAME, self::FIRST_RELEASE );
+	public function testWhenAReleaseIsMarkedForDeployment_deploymentInProcessReturnsTrue() {
+		$releaseState = new PDOReleaseState( $this->db, self::BRANCH_NAME );
+		$this->insertFirstRelease();
+
 		$releaseState->markDeploymentAsStarted( self::FIRST_RELEASE );
-		$this->assertTrue( $releaseState->deploymentInProcess( self::BRANCH_NAME ) );
+		$this->assertTrue( $releaseState->deploymentInProcess() );
 	}
 
 	public function testWhenAddingAndDeployingARelease_itIsNotUndeployed() {
-		$releaseState = new PDOReleaseState( $this->db );
-		$releaseState->addRelease( self::BRANCH_NAME, self::FIRST_RELEASE );
+		$releaseState = new PDOReleaseState( $this->db, self::BRANCH_NAME );
+		$this->insertFirstRelease();
 		$releaseState->markDeploymentAsStarted( self::FIRST_RELEASE );
-		$this->assertFalse( $releaseState->hasUndeployedReleases( self::BRANCH_NAME ) );
+
+		$this->assertFalse( $releaseState->hasUndeployedReleases() );
 	}
 
 	public function testWhenEndingADeployment_deploymentInProcessReturnsFalse() {
-		$releaseState = new PDOReleaseState( $this->db );
-		$releaseState->addRelease( self::BRANCH_NAME, self::FIRST_RELEASE );
+		$releaseState = new PDOReleaseState( $this->db, self::BRANCH_NAME  );
+		$this->insertFirstRelease();
 		$releaseState->markDeploymentAsStarted( self::FIRST_RELEASE );
 		$releaseState->markDeploymentAsFinished( self::FIRST_RELEASE );
-		$this->assertFalse( $releaseState->deploymentInProcess( self::BRANCH_NAME ) );
-		$this->assertFalse( $releaseState->hasUndeployedReleases( self::BRANCH_NAME ) );
+
+		$this->assertFalse( $releaseState->deploymentInProcess() );
+		$this->assertFalse( $releaseState->hasUndeployedReleases() );
 	}
 
 	public function testWhenEndingADeployment_previousUndeployedReleasesAreMarkedAsEnded() {
-		$releaseState = new PDOReleaseState( $this->db );
-		$releaseState->addRelease( self::BRANCH_NAME, self::FIRST_RELEASE, '2016-01-02 09:00:00' );
-		$releaseState->addRelease( self::BRANCH_NAME, self::SECOND_RELEASE, '2016-01-02 10:00:00' );
-		$releaseState->addRelease( self::BRANCH_NAME, self::THIRD_RELEASE, '2016-01-02 11:00:00' );
+		$releaseState = new PDOReleaseState( $this->db, self::BRANCH_NAME  );
+		$this->insertThreeReleases();
 		$releaseState->markDeploymentAsStarted( self::THIRD_RELEASE );
 		$releaseState->markDeploymentAsFinished( self::THIRD_RELEASE );
 
-		$this->assertFalse( $releaseState->deploymentInProcess( self::BRANCH_NAME ) );
-		$this->assertFalse( $releaseState->hasUndeployedReleases( self::BRANCH_NAME ) );
+		$this->assertFalse( $releaseState->deploymentInProcess() );
+		$this->assertFalse( $releaseState->hasUndeployedReleases() );
 	}
 
 	public function testWhenEndingADeployment_subsequentReleasesAreNotTouched() {
-		$releaseState = new PDOReleaseState( $this->db );
-		$releaseState->addRelease( self::BRANCH_NAME, self::FIRST_RELEASE, '2016-01-02 09:00:00' );
-		$releaseState->addRelease( self::BRANCH_NAME, self::SECOND_RELEASE, '2016-01-02 10:00:00' );
-		$releaseState->addRelease( self::BRANCH_NAME, self::THIRD_RELEASE, '2016-01-02 11:00:00' );
+		$releaseState = new PDOReleaseState( $this->db, self::BRANCH_NAME  );
+		$this->insertThreeReleases();
 		$releaseState->markDeploymentAsStarted( self::SECOND_RELEASE );
 		$releaseState->markDeploymentAsFinished( self::SECOND_RELEASE );
 
-		$this->assertFalse( $releaseState->deploymentInProcess( self::BRANCH_NAME ) );
-		$this->assertTrue( $releaseState->hasUndeployedReleases( self::BRANCH_NAME ) );
-		$expectedReleases = [ self::BRANCH_NAME => self::THIRD_RELEASE ];
-		$this->assertEquals( $expectedReleases, $releaseState->getLatestReleases() );
+		$this->assertFalse( $releaseState->deploymentInProcess() );
+		$this->assertTrue( $releaseState->hasUndeployedReleases() );
+		$this->assertEquals( self::THIRD_RELEASE, $releaseState->getLatestReleaseId() );
+	}
+
+	private function insertFirstRelease() {
+		$this->releaseStateWriter->addRelease( self::BRANCH_NAME, self::FIRST_RELEASE );
+	}
+
+	private function insertThreeReleases() {
+		$this->releaseStateWriter->addRelease( self::BRANCH_NAME, self::FIRST_RELEASE, '2016-01-02 09:00:00' );
+		$this->releaseStateWriter->addRelease( self::BRANCH_NAME, self::SECOND_RELEASE, '2016-01-02 10:00:00' );
+		$this->releaseStateWriter->addRelease( self::BRANCH_NAME, self::THIRD_RELEASE, '2016-01-02 11:00:00' );
 	}
 
 }

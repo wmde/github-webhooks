@@ -20,11 +20,11 @@ $app->post( '/deploy', function ( Request $request ) use ($app) {
 	}
 
 	if ( !empty( $payload->repository->full_name ) &&
-		!empty( $payload->ref ) &&
-		$payload->repository->full_name === 'wmde/FundraisingFrontend' &&
+			!empty( $payload->ref ) &&
+			$payload->repository->full_name === 'wmde/FundraisingFrontend' &&
 		in_array( $payload->ref, [ 'refs/heads/master', 'refs/heads/production' ] ) ) {
 		$branchName = str_replace( 'refs/heads/', '', $payload->ref );
-		$app['release_state']->addRelease( $branchName, $payload->after );
+		$app['release_state_writer']->addRelease( $branchName, $payload->after );
 	}
 
 	return new Response( 'Ok' );

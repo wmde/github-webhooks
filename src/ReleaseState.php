@@ -8,11 +8,11 @@ namespace WMDE\Fundraising\Deployment;
  */
 interface ReleaseState {
 
-	public function deploymentInProcess( $branchName ) : bool;
+	public function hasUndeployedReleases(): bool;
 
-	public function getLatestReleases(): array;
+	public function deploymentInProcess(): bool;
 
-	public function addRelease( string $branchName, string $refId, $now = '' );
+	public function getLatestReleaseId(): string;
 
 	public function markDeploymentAsStarted( string $refId, string $now = '' );
 

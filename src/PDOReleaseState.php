@@ -11,42 +11,31 @@ namespace WMDE\Fundraising\Deployment;
 class PDOReleaseState implements ReleaseState {
 
 	private $db;
+	private $branchName;
 
-	public function __construct( \PDO $db ) {
+	public function __construct( \PDO $db, string $branchName ) {
 		$this->db = $db;
+		$this->branchName = $branchName;
 	}
 
-	public function hasUndeployedReleases( string $branchName ): bool {
+	public function hasUndeployedReleases(): bool {
 		$stmt = $this->db->prepare( 'SELECT COUNT(*) FROM releases WHERE branch = :branchName AND ts_ended IS NULL AND ts_started IS NULL' );
-		$stmt->execute( ['branchName' =>  $branchName ] );
+		$stmt->execute( ['branchName' =>  $this->branchName ] );
 		return $stmt->fetchColumn() > 0;
 	}
 
-	public function deploymentInProcess( $branchName ): bool {
+	public function deploymentInProcess(): bool {
 		$stmt = $this->db->prepare( 'SELECT COUNT(*) FROM releases WHERE branch = :branchName AND ts_ended IS NULL AND ts_started IS NOT NULL' );
-		$stmt->execute( ['branchName' =>  $branchName ] );
+		$stmt->execute( ['branchName' =>  $this->branchName ] );
 		return $stmt->fetchColumn() > 0;
 	}
 
-	public function getLatestReleases(): array {
+	public function getLatestReleaseId(): string {
 		$stmt = $this->db->prepare(
-			'SELECT branch, refid FROM releases WHERE ts_ended IS NULL AND ts_started IS NULL GROUP BY branch ORDER BY ts_added DESC'
+			'SELECT refid FROM releases WHERE ts_ended IS NULL AND ts_started IS NULL AND branch = :branchName ORDER BY ts_added DESC LIMIT 1'
 		);
-		$stmt->execute();
-		$releases = [];
-		while( $row = $stmt->fetch( \PDO::FETCH_ASSOC ) ) {
-			$releases[ $row['branch'] ] = $row['refid'];
-		}
-		return $releases;
-	}
-
-	public function addRelease( string $branchName, string $refId, $now = '' ) {
-		$stmt = $this->db->prepare( 'INSERT INTO releases VALUES( :refId, :branchName, :timestampAdded, NULL, NULL )' );
-		$stmt->execute( [
-			'branchName' => $branchName,
-			'refId' => $refId,
-			'timestampAdded' => $now ?: date( DATE_ISO8601 )
-		] );
+		$stmt->execute( ['branchName' =>  $this->branchName ] );
+		return $stmt->fetchColumn();
 	}
 
 	public function markDeploymentAsStarted( string $refId, string $now = '' ) {
