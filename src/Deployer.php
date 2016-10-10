@@ -13,7 +13,7 @@ class Deployer {
 
 	private $releaseState;
 
-	public function __construct( ReleaseState $releaseState ) {
+	public function __construct( ReleaseRepository $releaseState ) {
 		$this->releaseState = $releaseState;
 	}
 

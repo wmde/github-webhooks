@@ -8,7 +8,7 @@ namespace WMDE\Fundraising\Deployment;
  * @license GNU GPL v2+
  * @author Gabriel Birke < gabriel.birke@wikimedia.de >
  */
-class PDOReleaseState implements ReleaseState {
+class PdoReleaseRepository implements ReleaseRepository {
 
 	private $db;
 	private $branchName;

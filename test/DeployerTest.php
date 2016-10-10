@@ -3,7 +3,7 @@
 namespace WMDE\Fundraising\Deployment\Tests;
 
 use WMDE\Fundraising\Deployment\Deployer;
-use WMDE\Fundraising\Deployment\ReleaseState;
+use WMDE\Fundraising\Deployment\ReleaseRepository;
 use Symfony\Component\Process\Process;
 
 class DeployerTest extends \PHPUnit_Framework_TestCase {
@@ -11,7 +11,7 @@ class DeployerTest extends \PHPUnit_Framework_TestCase {
 	const RELEASE_ID = 'deadbeef';
 
 	public function testGivenNoReleases_deployCommandIsNotCalled() {
-		$releaseState = $this->createMock( ReleaseState::class );
+		$releaseState = $this->createMock( ReleaseRepository::class );
 		$releaseState->method( 'hasUndeployedReleases' )->willReturn( false );
 
 		$command = $this->createMock( Process::class );
@@ -34,7 +34,7 @@ class DeployerTest extends \PHPUnit_Framework_TestCase {
 	}
 
 	public function testGivenReleaseInDeployment_deployCommandIsNotCalled() {
-		$releaseState = $this->createMock( ReleaseState::class );
+		$releaseState = $this->createMock( ReleaseRepository::class );
 		$releaseState->method( 'hasUndeployedReleases' )->willReturn( true );
 		$releaseState->method( 'deploymentInProcess' )->willReturn( true );
 
@@ -77,10 +77,10 @@ class DeployerTest extends \PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @return ReleaseState|\PHPUnit_Framework_MockObject_MockObject
+	 * @return ReleaseRepository|\PHPUnit_Framework_MockObject_MockObject
 	 */
 	private function createDeployableReleaseState() {
-		$releaseState = $this->createMock( ReleaseState::class );
+		$releaseState = $this->createMock( ReleaseRepository::class );
 		$releaseState->method( 'hasUndeployedReleases' )->willReturn( true );
 		$releaseState->method( 'deploymentInProcess' )->willReturn( false );
 		$releaseState->method( 'getLatestReleaseId' )->willReturn( self::RELEASE_ID );
