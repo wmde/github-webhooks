@@ -12,7 +12,11 @@ interface ReleaseState {
 
 	public function deploymentInProcess(): bool;
 
+	public function getLatestReleaseId(): string;
+
 	public function markDeploymentAsStarted( string $refId, string $now = '' );
 
 	public function markDeploymentAsFinished( string $refId, string $now = '' );
+
+	public function markDeploymentAsFailed( string $refId, string $now = '' );
 }

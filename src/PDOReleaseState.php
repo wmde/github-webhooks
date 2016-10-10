@@ -30,7 +30,7 @@ class PDOReleaseState implements ReleaseState {
 		return $stmt->fetchColumn() > 0;
 	}
 
-	public function getLatestRelease(): string {
+	public function getLatestReleaseId(): string {
 		$stmt = $this->db->prepare(
 			'SELECT refid FROM releases WHERE ts_ended IS NULL AND ts_started IS NULL AND branch = :branchName ORDER BY ts_added DESC LIMIT 1'
 		);
@@ -53,6 +53,13 @@ class PDOReleaseState implements ReleaseState {
 			'timestampEnded' => $now ?: date( DATE_ISO8601 )
 		] );
 		$this->updateOlderReleases( $refId );
+	}
+
+	public function markDeploymentAsFailed( string $refId, string $now = '' ) {
+		$stmt = $this->db->prepare( 'UPDATE releases SET num_tries = num_tries + 1, ts_started = NULL, ts_ended = NULL  WHERE refid = :refId' );
+		$stmt->execute( [
+			'refId' => $refId,
+		] );
 	}
 
 	private function updateOlderReleases( string $refId ) {

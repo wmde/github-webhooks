@@ -57,7 +57,7 @@ class PDOReleaseStateTest extends \PHPUnit_Framework_TestCase {
 		$releaseState = new PDOReleaseState( $this->db, self::BRANCH_NAME );
 		$this->insertThreeReleases();
 
-		$this->assertEquals( self::THIRD_RELEASE, $releaseState->getLatestRelease() );
+		$this->assertEquals( self::THIRD_RELEASE, $releaseState->getLatestReleaseId() );
 	}
 
 	public function testWhenAReleaseIsMarkedForDeployment_deploymentInProcessReturnsTrue() {
@@ -104,7 +104,17 @@ class PDOReleaseStateTest extends \PHPUnit_Framework_TestCase {
 
 		$this->assertFalse( $releaseState->deploymentInProcess() );
 		$this->assertTrue( $releaseState->hasUndeployedReleases() );
-		$this->assertEquals( self::THIRD_RELEASE, $releaseState->getLatestRelease() );
+		$this->assertEquals( self::THIRD_RELEASE, $releaseState->getLatestReleaseId() );
+	}
+
+	public function testWhenMarkingADeploymentAsFailed_ItCanBeDeployedAgain() {
+		$releaseState = new PDOReleaseState( $this->db, self::BRANCH_NAME  );
+		$this->insertFirstRelease();
+		$releaseState->markDeploymentAsStarted( self::FIRST_RELEASE );
+		$releaseState->markDeploymentAsFailed( self::FIRST_RELEASE );
+
+		$this->assertFalse( $releaseState->deploymentInProcess() );
+		$this->assertTrue( $releaseState->hasUndeployedReleases() );
 	}
 
 	private function insertFirstRelease() {
