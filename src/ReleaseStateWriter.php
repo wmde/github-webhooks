@@ -9,12 +9,9 @@ namespace WMDE\Fundraising\Deployment;
  * @author Gabriel Birke < gabriel.birke@wikimedia.de >
  */
 class ReleaseStateWriter {
+
 	private $db;
 
-	/**
-	 * ReleaseStateWriter constructor.
-	 * @param $db
-	 */
 	public function __construct( \PDO $db ) {
 		$this->db = $db;
 	}
@@ -27,4 +24,5 @@ class ReleaseStateWriter {
 			'timestampAdded' => $now ?: date( DATE_ISO8601 )
 		] );
 	}
+
 }
