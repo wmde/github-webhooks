@@ -3,6 +3,7 @@
     "description": "Run actions for github webhooks",
     "license": "GPL-2.0+",
     "require": {
+        "php": ">=7.0",
         "silex/silex": "~2.0",
         "symfony/process": "^3.1"
     },
