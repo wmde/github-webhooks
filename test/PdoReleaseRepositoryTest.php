@@ -2,10 +2,10 @@
 
 namespace WMDE\Fundraising\Deployment\Tests;
 
-use WMDE\Fundraising\Deployment\PDOReleaseState;
+use WMDE\Fundraising\Deployment\PdoReleaseRepository;
 use WMDE\Fundraising\Deployment\ReleaseStateWriter;
 
-class PDOReleaseStateTest extends \PHPUnit_Framework_TestCase {
+class PdoReleaseRepositoryTest extends \PHPUnit_Framework_TestCase {
 	
 	const BRANCH_NAME = 'testBranch';
 	const FIRST_RELEASE = 'deadbeef';
@@ -35,33 +35,33 @@ class PDOReleaseStateTest extends \PHPUnit_Framework_TestCase {
 	}
 
 	public function testGivenNewRelaseState_itHasNoUndeployedReleases() {
-		$releaseState = new PDOReleaseState( $this->db, self::BRANCH_NAME );
+		$releaseState = new PdoReleaseRepository( $this->db, self::BRANCH_NAME );
 		$this->assertFalse( $releaseState->hasUndeployedReleases() );
 	}
 
 	public function testWhenAddingARelease_itIsUndeployed() {
-		$releaseState = new PDOReleaseState( $this->db, self::BRANCH_NAME );
+		$releaseState = new PdoReleaseRepository( $this->db, self::BRANCH_NAME );
 		$this->insertFirstRelease();
 
 		$this->assertTrue( $releaseState->hasUndeployedReleases() );
 	}
 
 	public function testWhenAddingARelease_deploymentInProcessReturnsFalse() {
-		$releaseState = new PDOReleaseState( $this->db, self::BRANCH_NAME );
+		$releaseState = new PdoReleaseRepository( $this->db, self::BRANCH_NAME );
 		$this->insertFirstRelease();
 
 		$this->assertFalse( $releaseState->deploymentInProcess() );
 	}
 
 	public function testGivenSeveralReleases_getLatestReleasesReturnsTheMostRecent() {
-		$releaseState = new PDOReleaseState( $this->db, self::BRANCH_NAME );
+		$releaseState = new PdoReleaseRepository( $this->db, self::BRANCH_NAME );
 		$this->insertThreeReleases();
 
 		$this->assertEquals( self::THIRD_RELEASE, $releaseState->getLatestReleaseId() );
 	}
 
 	public function testWhenAReleaseIsMarkedForDeployment_deploymentInProcessReturnsTrue() {
-		$releaseState = new PDOReleaseState( $this->db, self::BRANCH_NAME );
+		$releaseState = new PdoReleaseRepository( $this->db, self::BRANCH_NAME );
 		$this->insertFirstRelease();
 
 		$releaseState->markDeploymentAsStarted( self::FIRST_RELEASE );
@@ -69,7 +69,7 @@ class PDOReleaseStateTest extends \PHPUnit_Framework_TestCase {
 	}
 
 	public function testWhenAddingAndDeployingARelease_itIsNotUndeployed() {
-		$releaseState = new PDOReleaseState( $this->db, self::BRANCH_NAME );
+		$releaseState = new PdoReleaseRepository( $this->db, self::BRANCH_NAME );
 		$this->insertFirstRelease();
 		$releaseState->markDeploymentAsStarted( self::FIRST_RELEASE );
 
@@ -77,7 +77,7 @@ class PDOReleaseStateTest extends \PHPUnit_Framework_TestCase {
 	}
 
 	public function testWhenEndingADeployment_deploymentInProcessReturnsFalse() {
-		$releaseState = new PDOReleaseState( $this->db, self::BRANCH_NAME  );
+		$releaseState = new PdoReleaseRepository( $this->db, self::BRANCH_NAME  );
 		$this->insertFirstRelease();
 		$releaseState->markDeploymentAsStarted( self::FIRST_RELEASE );
 		$releaseState->markDeploymentAsFinished( self::FIRST_RELEASE );
@@ -87,7 +87,7 @@ class PDOReleaseStateTest extends \PHPUnit_Framework_TestCase {
 	}
 
 	public function testWhenEndingADeployment_previousUndeployedReleasesAreMarkedAsEnded() {
-		$releaseState = new PDOReleaseState( $this->db, self::BRANCH_NAME  );
+		$releaseState = new PdoReleaseRepository( $this->db, self::BRANCH_NAME  );
 		$this->insertThreeReleases();
 		$releaseState->markDeploymentAsStarted( self::THIRD_RELEASE );
 		$releaseState->markDeploymentAsFinished( self::THIRD_RELEASE );
@@ -97,7 +97,7 @@ class PDOReleaseStateTest extends \PHPUnit_Framework_TestCase {
 	}
 
 	public function testWhenEndingADeployment_subsequentReleasesAreNotTouched() {
-		$releaseState = new PDOReleaseState( $this->db, self::BRANCH_NAME  );
+		$releaseState = new PdoReleaseRepository( $this->db, self::BRANCH_NAME  );
 		$this->insertThreeReleases();
 		$releaseState->markDeploymentAsStarted( self::SECOND_RELEASE );
 		$releaseState->markDeploymentAsFinished( self::SECOND_RELEASE );
@@ -108,7 +108,7 @@ class PDOReleaseStateTest extends \PHPUnit_Framework_TestCase {
 	}
 
 	public function testWhenMarkingADeploymentAsFailed_ItCanBeDeployedAgain() {
-		$releaseState = new PDOReleaseState( $this->db, self::BRANCH_NAME  );
+		$releaseState = new PdoReleaseRepository( $this->db, self::BRANCH_NAME  );
 		$this->insertFirstRelease();
 		$releaseState->markDeploymentAsStarted( self::FIRST_RELEASE );
 		$releaseState->markDeploymentAsFailed( self::FIRST_RELEASE );
