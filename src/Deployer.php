@@ -11,23 +11,32 @@ use Symfony\Component\Process\Process;
  */
 class Deployer {
 
-	private $releaseState;
+	private $releaseRepository;
+	private $onDeploymentFailed;
 
-	public function __construct( ReleaseRepository $releaseState ) {
-		$this->releaseState = $releaseState;
+	public function __construct( ReleaseRepository $releaseRepository, callable $onDeploymentFailed = null ) {
+		$this->releaseRepository = $releaseRepository;
+		$this->onDeploymentFailed = $onDeploymentFailed;
 	}
 
 	public function run( Process $deployCommand ) {
-		if ( !$this->releaseState->hasUndeployedReleases() || $this->releaseState->deploymentInProcess() ) {
+		if ( !$this->releaseRepository->hasUndeployedReleases() || $this->releaseRepository->deploymentInProcess() ) {
 			return;
 		}
-		$latestReleaseId = $this->releaseState->getLatestReleaseId();
-		$this->releaseState->markDeploymentAsStarted( $latestReleaseId );
+
+		$latestReleaseId = $this->releaseRepository->getLatestReleaseId();
+		$this->releaseRepository->markDeploymentAsStarted( $latestReleaseId );
+
 		$deployCommand->run();
+
 		if ( $deployCommand->isSuccessful() ) {
-			$this->releaseState->markDeploymentAsFinished( $latestReleaseId );
+			$this->releaseRepository->markDeploymentAsFinished( $latestReleaseId );
 		} else {
-			$this->releaseState->markDeploymentAsFailed( $latestReleaseId );
+			if ( is_callable( $this->onDeploymentFailed ) ) {
+				call_user_func( $this->onDeploymentFailed, $latestReleaseId, $deployCommand->getErrorOutput() );
+			}
+
+			$this->releaseRepository->markDeploymentAsFailed( $latestReleaseId );
 		}
 
 	}

@@ -10,7 +10,6 @@ use Symfony\Component\HttpKernel\Client;
 
 /**
  * @licence GNU GPL v2+
- * @author Jeroen De Dauw < jeroendedauw@gmail.com >
  */
 abstract class WebRouteTestCase extends \PHPUnit_Framework_TestCase {
 
