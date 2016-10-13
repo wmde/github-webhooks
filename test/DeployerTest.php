@@ -9,28 +9,29 @@ use Symfony\Component\Process\Process;
 class DeployerTest extends \PHPUnit_Framework_TestCase {
 
 	const RELEASE_ID = 'deadbeef';
+	const PROCESS_ERROR_MESSAGE = 'MAWrror';
 
 	public function testGivenNoReleases_deployCommandIsNotCalled() {
 		$releaseState = $this->createMock( ReleaseRepository::class );
 		$releaseState->method( 'hasUndeployedReleases' )->willReturn( false );
 
-		$command = $this->createMock( Process::class );
-		$command->expects( $this->never() )
+		$process = $this->createMock( Process::class );
+		$process->expects( $this->never() )
 			->method( 'run' );
 
 		$deployer = new Deployer( $releaseState);
-		$deployer->run( $command );
+		$deployer->run( $process );
 	}
 
 	public function testGivenReleaseForBranch_deployCommandIsExecuted() {
 		$releaseState = $this->createDeployableReleaseState();
 
-		$command = $this->createMock( Process::class );
-		$command->expects( $this->once() )
+		$process = $this->createMock( Process::class );
+		$process->expects( $this->once() )
 			->method( 'run' );
 
 		$deployer = new Deployer( $releaseState);
-		$deployer->run( $command );
+		$deployer->run( $process );
 	}
 
 	public function testGivenReleaseInDeployment_deployCommandIsNotCalled() {
@@ -38,12 +39,12 @@ class DeployerTest extends \PHPUnit_Framework_TestCase {
 		$releaseState->method( 'hasUndeployedReleases' )->willReturn( true );
 		$releaseState->method( 'deploymentInProcess' )->willReturn( true );
 
-		$command = $this->createMock( Process::class );
-		$command->expects( $this->never() )
+		$process = $this->createMock( Process::class );
+		$process->expects( $this->never() )
 			->method( 'run' );
 
 		$deployer = new Deployer( $releaseState);
-		$deployer->run( $command );
+		$deployer->run( $process );
 	}
 
 	public function testDeploymentWillBeStartedAndEnded() {
@@ -56,24 +57,34 @@ class DeployerTest extends \PHPUnit_Framework_TestCase {
 			->method( 'markDeploymentAsFinished' )
 			->with( $this->equalTo( self::RELEASE_ID ) );
 
-		$command = $this->createMock( Process::class );
-		$command->method( 'isSuccessful' )->willReturn( true );
-		$deployer = new Deployer( $releaseState);
-		$deployer->run( $command );
+		$deployer = new Deployer( $releaseState );
+		$deployer->run( $this->newSucceedingDeployProcess() );
 	}
 
-	public function testGivenFailingCommand_ReleaseIsMarkedAsFailed() {
+	private function newSucceedingDeployProcess(): Process {
+		$process = $this->createMock( Process::class );
+		$process->method( 'isSuccessful' )->willReturn( true );
+		return $process;
+	}
+
+	public function testWhenDeployProcessFails_releaseIsMarkedAsFailed() {
 		$releaseState = $this->createDeployableReleaseState();
 
 		$releaseState->expects( $this->once() )
 			->method( 'markDeploymentAsFailed' )
 			->with( $this->equalTo( self::RELEASE_ID ) );
 
-		$command = $this->createMock( Process::class );
-		$command->method( 'isSuccessful' )->willReturn( false );
-
 		$deployer = new Deployer( $releaseState);
-		$deployer->run( $command );
+		$deployer->run( $this->newFailingDeployProcess() );
+	}
+
+	private function newFailingDeployProcess(): Process {
+		$process = $this->createMock( Process::class );
+
+		$process->method( 'isSuccessful' )->willReturn( false );
+		$process->method( 'getErrorOutput' )->willReturn( self::PROCESS_ERROR_MESSAGE );
+
+		return $process;
 	}
 
 	/**
@@ -85,6 +96,35 @@ class DeployerTest extends \PHPUnit_Framework_TestCase {
 		$releaseState->method( 'deploymentInProcess' )->willReturn( false );
 		$releaseState->method( 'getLatestReleaseId' )->willReturn( self::RELEASE_ID );
 		return $releaseState;
+	}
+
+	public function testWhenDeploymentFails_onDeploymentFailedCallbackGetsCalled() {
+		$argumentsPassedToCallback = null;
+
+		$onDeploymentFailedCallback = function() use ( &$argumentsPassedToCallback ) {
+			$argumentsPassedToCallback = func_get_args();
+		};
+
+		$deployer = new Deployer( $this->createDeployableReleaseState(), $onDeploymentFailedCallback );
+		$deployer->run( $this->newFailingDeployProcess() );
+
+		$this->assertSame(
+			[ self::RELEASE_ID, self::PROCESS_ERROR_MESSAGE ],
+			$argumentsPassedToCallback
+		);
+	}
+
+	public function testWhenDeploymentSucceeds_onDeploymentFailedCallbackDoesNotGetCalled() {
+		$deployer = new Deployer(
+			$this->createDeployableReleaseState(),
+			function() {
+				$this->fail( 'Should not have been called' );
+			}
+		);
+
+		$deployer->run( $this->newSucceedingDeployProcess() );
+
+		$this->assertTrue( (bool)'Sebastian does not like this' );
 	}
 
 }
