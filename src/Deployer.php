@@ -32,11 +32,11 @@ class Deployer {
 		if ( $deployCommand->isSuccessful() ) {
 			$this->releaseRepository->markDeploymentAsFinished( $latestReleaseId );
 		} else {
+			$this->releaseRepository->markDeploymentAsFailed( $latestReleaseId );
+
 			if ( is_callable( $this->onDeploymentFailed ) ) {
 				call_user_func( $this->onDeploymentFailed, $latestReleaseId, $deployCommand->getErrorOutput() );
 			}
-
-			$this->releaseRepository->markDeploymentAsFailed( $latestReleaseId );
 		}
 
 	}
