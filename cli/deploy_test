@@ -7,17 +7,19 @@ use WMDE\Fundraising\Deployment\PdoReleaseRepository;
 
 require_once __DIR__ . '../vendor/autoload.php';
 
-define( 'DB_DSN', __DIR__ . '/../var/releases.sqlite' );
-define( 'DEPLOY_COMMAND', 'ansible-playbook -i inventory/test deployment.yml' );
-define( 'BRANCH_NAME', 'master' );
+call_user_func( function() {
+	$DB_DSN = __DIR__ . '/../var/releases.sqlite';
+	$DEPLOY_COMMAND = 'ansible-playbook -i inventory/test deployment.yml';
+	$BRANCH_NAME = 'master';
 
-if ( !file_exists( DB_DSN ) ) {
-	exit(1);
-}
+	if ( !file_exists( $DB_DSN ) ) {
+		exit(1);
+	}
 
-$cwd = empty( $argv[1] ) ? null : $argv[1];
+	$releaseState = new PdoReleaseRepository( new \PDO( $DB_DSN ), $BRANCH_NAME );
+	$deployer = new Deployer( $releaseState  );
+	$command = new Process( $DEPLOY_COMMAND, empty( $GLOBALS['argv'][1] ) ? null : $GLOBALS['argv'][1] );
 
-$releaseState = new PdoReleaseRepository( new \PDO( DB_DSN ), BRANCH_NAME );
-$deployer = new Deployer( $releaseState  );
-$command = new Process( DEPLOY_COMMAND, $cwd );
-$deployer->run( $command );
+	$deployer->run( $command );
+} );
+
