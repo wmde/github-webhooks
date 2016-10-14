@@ -1,9 +1,10 @@
 <?php
 
-namespace WMDE\Fundraising\Deployment\Tests;
+namespace WMDE\Fundraising\Deployment\Tests\Integration;
 
 use WMDE\Fundraising\Deployment\PdoReleaseRepository;
 use WMDE\Fundraising\Deployment\ReleaseStateWriter;
+use WMDE\Fundraising\Deployment\Tests\TestEnvironment;
 
 class PdoReleaseRepositoryTest extends \PHPUnit_Framework_TestCase {
 	
@@ -23,15 +24,11 @@ class PdoReleaseRepositoryTest extends \PHPUnit_Framework_TestCase {
 	private $releaseStateWriter;
 
 	protected function setUp() {
-		$this->db = new \PDO( 'sqlite::memory:' );
-		$this->db->setAttribute( \PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-		$this->releaseStateWriter = new ReleaseStateWriter( $this->db );
+		$factory = TestEnvironment::newInstance()->getFactory();
+		$factory->getPdo()->setAttribute( \PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION );
 
-		$this->setupDBTable();
-	}
-
-	private function setupDBTable() {
-		$this->db->exec( file_get_contents( __DIR__ . '/../db/schema.sql' ) );
+		$this->db = $factory->getPdo();
+		$this->releaseStateWriter = $factory->getReleaseStateWriter();
 	}
 
 	public function testGivenNewRelaseState_itHasNoUndeployedReleases() {

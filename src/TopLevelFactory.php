@@ -4,6 +4,9 @@ declare(strict_types = 1);
 
 namespace WMDE\Fundraising\Deployment;
 
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
+
 /**
  * @license GNU GPL v2+
  * @author Jeroen De Dauw < jeroendedauw@gmail.com >
@@ -17,6 +20,11 @@ class TopLevelFactory {
 	private $dbDsn;
 
 	/**
+	 * @var LoggerInterface
+	 */
+	private $logger;
+
+	/**
 	 * @var \PDO|null
 	 */
 	private $pdo = null;
@@ -28,10 +36,26 @@ class TopLevelFactory {
 
 	public function __construct( string $dbDsn ) {
 		$this->dbDsn = $dbDsn;
+		$this->logger = new NullLogger();
 	}
 
 	public function newDeployer( string $branchName ): Deployer {
-		return new Deployer( new PdoReleaseRepository( $this->getPdo(), $branchName ) );
+		return new Deployer(
+			$this->newReleaseRepository( $branchName ),
+			function( string $releaseId, string $errorText ) {
+				$this->logger->alert(
+					'Deployment failed',
+					[
+						'Release ID' => $releaseId,
+						'Command error output' => $errorText,
+					]
+				);
+			}
+		);
+	}
+
+	private function newReleaseRepository( string $branchName ): ReleaseRepository {
+		return new PdoReleaseRepository( $this->getPdo(), $branchName );
 	}
 
 	public function getPdo(): \PDO {
@@ -52,6 +76,10 @@ class TopLevelFactory {
 
 	public function setReleaseStateWriter( ReleaseStateWriter $releaseStateWriter ) {
 		$this->releaseStateWriter = $releaseStateWriter;
+	}
+
+	public function setLogger( LoggerInterface $logger ) {
+		$this->logger = $logger;
 	}
 
 }

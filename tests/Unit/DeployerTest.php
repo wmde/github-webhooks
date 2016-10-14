@@ -1,6 +1,6 @@
 <?php
 
-namespace WMDE\Fundraising\Deployment\Tests;
+namespace WMDE\Fundraising\Deployment\Tests\Unit;
 
 use WMDE\Fundraising\Deployment\Deployer;
 use WMDE\Fundraising\Deployment\ReleaseRepository;
