@@ -5,6 +5,7 @@ namespace WMDE\Fundraising\Deployment\Tests\EdgeToEdge;
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Response;
 use WMDE\Fundraising\Deployment\ReleaseStateWriter;
+use WMDE\Fundraising\Deployment\TopLevelFactory;
 
 class DeploymentRouteTest extends WebRouteTestCase  {
 
@@ -27,24 +28,28 @@ class DeploymentRouteTest extends WebRouteTestCase  {
 	}
 
 	public function testGivenAValidPayload_aReleaseIsCreated() {
-		$releaseState = $this->getMockBuilder( ReleaseStateWriter::class )->disableOriginalConstructor()->getMock();
-		$releaseState->expects( $this->once() )
-			->method( 'addRelease' )
-			->with( 'master', '0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c' );
-		$client = $this->createClient( function ( Application $app ) use ( $releaseState ){
-			$app['release_state_writer'] = $releaseState;
+		$client = $this->createClient( function ( TopLevelFactory $factory ) {
+			$releaseStateWriter = $this->getMockBuilder( ReleaseStateWriter::class )->disableOriginalConstructor()->getMock();
+			$releaseStateWriter->expects( $this->once() )
+				->method( 'addRelease' )
+				->with( 'master', '0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c' );
+
+			$factory->setReleaseStateWriter( $releaseStateWriter );
 		} );
+
 		$client->request( 'POST', '/deploy', [], [], $this->getValidHeaders(), $this->getValidPayload() );
 		$this->assertTrue( $client->getResponse()->isOk() );
 	}
 
 	public function testGivenADifferentRepositoryName_noReleaseIsCreated() {
-		$releaseState = $this->getMockBuilder( ReleaseStateWriter::class )->disableOriginalConstructor()->getMock();
-		$releaseState->expects( $this->never() )
-			->method( 'addRelease' );
-		$client = $this->createClient( function ( Application $app ) use ( $releaseState ){
-			$app['release_state_writer'] = $releaseState;
+		$client = $this->createClient( function ( TopLevelFactory $factory ) {
+			$releaseStateWriter = $this->getMockBuilder( ReleaseStateWriter::class )->disableOriginalConstructor()->getMock();
+			$releaseStateWriter->expects( $this->never() )
+				->method( 'addRelease' );
+
+			$factory->setReleaseStateWriter( $releaseStateWriter );
 		} );
+
 		$client->request( 'POST', '/deploy', [], [], $this->getValidHeaders(), $this->getPayloadWithDifferentRepositoryName() );
 		$this->assertTrue( $client->getResponse()->isOk() );
 	}

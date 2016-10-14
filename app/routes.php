@@ -5,9 +5,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * @global \Silex\Application $app
+ * @global \WMDE\Fundraising\Deployment\TopLevelFactory $topLevelFactory
  */
 
-$app->post( '/deploy', function ( Request $request ) use ($app) {
+$app->post( '/deploy', function ( Request $request ) use ( $topLevelFactory ) {
 	if ( !$request->headers->has( 'X-GitHub-Event' ) ) {
 		return new Response( 'Bad request - X-GitHub-Event header missing', Response::HTTP_BAD_REQUEST );
 	}
@@ -22,9 +23,11 @@ $app->post( '/deploy', function ( Request $request ) use ($app) {
 	if ( !empty( $payload->repository->full_name ) &&
 			!empty( $payload->ref ) &&
 			$payload->repository->full_name === 'wmde/FundraisingFrontend' &&
-		in_array( $payload->ref, [ 'refs/heads/master', 'refs/heads/production' ] ) ) {
+			in_array( $payload->ref, [ 'refs/heads/master', 'refs/heads/production' ] ) ) {
+
 		$branchName = str_replace( 'refs/heads/', '', $payload->ref );
-		$app['release_state_writer']->addRelease( $branchName, $payload->after );
+
+		$topLevelFactory->getReleaseStateWriter()->addRelease( $branchName, $payload->after );
 	}
 
 	return new Response( 'Ok' );

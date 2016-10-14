@@ -2,8 +2,9 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-require __DIR__ . '/../app/bootstrap.php';
+$topLevelFactory = \WMDE\Fundraising\Deployment\TopLevelFactory::newFromConfig();
 
-$app['dsn'] = 'sqlite:' . __DIR__ . '/var/releases.mysql';
+$app = require __DIR__ . '/../app/bootstrap.php';
+require __DIR__ . ' /../app/routes.php';
 
 $app->run();
