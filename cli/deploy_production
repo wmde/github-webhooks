@@ -2,24 +2,15 @@
 <?php
 
 use Symfony\Component\Process\Process;
-use WMDE\Fundraising\Deployment\Deployer;
-use WMDE\Fundraising\Deployment\PdoReleaseRepository;
+use WMDE\Fundraising\Deployment\TopLevelFactory;
 
 require_once __DIR__ . '../vendor/autoload.php';
 
 call_user_func( function() {
-	$DB_DSN = __DIR__ . '/../var/releases.sqlite';
-	$DEPLOY_COMMAND = 'ansible-playbook -i inventory/production deployment.yml';
-	$BRANCH_NAME = 'production';
+	$command = new Process(
+		'ansible-playbook -i inventory/production deployment.yml',
+		empty( $GLOBALS['argv'][1] ) ? null : $GLOBALS['argv'][1]
+	);
 
-	if ( !file_exists( $DB_DSN ) ) {
-		exit(1);
-	}
-
-	$releaseState = new PdoReleaseRepository( new \PDO( $DB_DSN ), $BRANCH_NAME );
-	$deployer = new Deployer( $releaseState  );
-	$command = new Process( $DEPLOY_COMMAND, empty( $GLOBALS['argv'][1] ) ? null : $GLOBALS['argv'][1] );
-
-	$deployer->run( $command );
+	TopLevelFactory::newFromConfig()->newDeployer( 'production' )->run( $command );
 } );
-
