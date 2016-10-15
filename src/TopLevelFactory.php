@@ -4,6 +4,11 @@ declare(strict_types = 1);
 
 namespace WMDE\Fundraising\Deployment;
 
+use Monolog\Formatter\JsonFormatter;
+use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\FingersCrossedHandler;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
@@ -14,7 +19,7 @@ use Psr\Log\NullLogger;
 class TopLevelFactory {
 
 	public static function newFromConfig(): self {
-		return new self( __DIR__ . '/../var/releases.sqlite' );
+		return new self( self::getVarPath() . '/releases.sqlite' );
 	}
 
 	private $dbDsn;
@@ -36,7 +41,37 @@ class TopLevelFactory {
 
 	public function __construct( string $dbDsn ) {
 		$this->dbDsn = $dbDsn;
-		$this->logger = new NullLogger();
+		$this->logger = $this->newDefaultLogger();
+	}
+
+	private function newDefaultLogger(): LoggerInterface {
+		$logger = new Logger( 'Deployment logger' );
+
+		$streamHandler = new StreamHandler(
+			$this->getLoggingPath() . '/error-debug.log'
+		);
+
+		$fingersCrossedHandler = new FingersCrossedHandler( $streamHandler );
+		$streamHandler->setFormatter( new LineFormatter( LineFormatter::SIMPLE_FORMAT ) );
+		$logger->pushHandler( $fingersCrossedHandler );
+
+		$errorHandler = new StreamHandler(
+			$this->getLoggingPath() . '/error.log',
+			Logger::ERROR
+		);
+
+		$errorHandler->setFormatter( new JsonFormatter() );
+		$logger->pushHandler( $errorHandler );
+
+		return $logger;
+	}
+
+	private function getLoggingPath(): string {
+		return self::getVarPath() . '/log';
+	}
+
+	private static function getVarPath(): string {
+		return __DIR__ . '/../var';
 	}
 
 	public function newDeployer( string $branchName ): Deployer {

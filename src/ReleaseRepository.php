@@ -1,6 +1,6 @@
 <?php
-namespace WMDE\Fundraising\Deployment;
 
+namespace WMDE\Fundraising\Deployment;
 
 /**
  * @license GNU GPL v2+
