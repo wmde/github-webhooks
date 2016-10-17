@@ -13,7 +13,7 @@
          verbose="true">
     <testsuites>
         <testsuite name="github-webhook">
-            <directory>test</directory>
+            <directory>tests</directory>
         </testsuite>
     </testsuites>
     <filter>

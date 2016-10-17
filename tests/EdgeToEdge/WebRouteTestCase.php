@@ -7,6 +7,7 @@ namespace WMDE\Fundraising\Deployment\Tests\EdgeToEdge;
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Client;
+use WMDE\Fundraising\Deployment\Tests\TestEnvironment;
 use WMDE\Fundraising\Deployment\TopLevelFactory;
 
 /**
@@ -24,8 +25,7 @@ abstract class WebRouteTestCase extends \PHPUnit_Framework_TestCase {
 	 * @return Client
 	 */
 	public function createClient( callable $onAppCreated = null, bool $debug = true ): Client {
-		$topLevelFactory = new TopLevelFactory( 'sqlite::memory:' );
-		$topLevelFactory->getPdo()->exec( file_get_contents( __DIR__ .'/../../db/schema.sql' ) );
+		$topLevelFactory = TestEnvironment::newInstance()->getFactory();
 
 		$app = $this->createApplication( $debug, $topLevelFactory );
 

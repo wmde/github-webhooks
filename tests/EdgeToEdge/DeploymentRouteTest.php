@@ -2,7 +2,6 @@
 
 namespace WMDE\Fundraising\Deployment\Tests\EdgeToEdge;
 
-use Silex\Application;
 use Symfony\Component\HttpFoundation\Response;
 use WMDE\Fundraising\Deployment\ReleaseStateWriter;
 use WMDE\Fundraising\Deployment\TopLevelFactory;
