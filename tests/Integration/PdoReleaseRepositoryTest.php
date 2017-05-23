@@ -8,7 +8,7 @@ use WMDE\Fundraising\Deployment\ReleaseStateWriter;
 use WMDE\Fundraising\Deployment\Tests\TestEnvironment;
 
 class PdoReleaseRepositoryTest extends TestCase {
-	
+
 	const BRANCH_NAME = 'testBranch';
 	const FIRST_RELEASE = 'deadbeef';
 	const SECOND_RELEASE = 'd0gf00d';
@@ -75,7 +75,7 @@ class PdoReleaseRepositoryTest extends TestCase {
 	}
 
 	public function testWhenEndingADeployment_deploymentInProcessReturnsFalse() {
-		$releaseState = new PdoReleaseRepository( $this->db, self::BRANCH_NAME  );
+		$releaseState = new PdoReleaseRepository( $this->db, self::BRANCH_NAME );
 		$this->insertFirstRelease();
 		$releaseState->markDeploymentAsStarted( self::FIRST_RELEASE );
 		$releaseState->markDeploymentAsFinished( self::FIRST_RELEASE );
@@ -85,7 +85,7 @@ class PdoReleaseRepositoryTest extends TestCase {
 	}
 
 	public function testWhenEndingADeployment_previousUndeployedReleasesAreMarkedAsEnded() {
-		$releaseState = new PdoReleaseRepository( $this->db, self::BRANCH_NAME  );
+		$releaseState = new PdoReleaseRepository( $this->db, self::BRANCH_NAME );
 		$this->insertThreeReleases();
 		$releaseState->markDeploymentAsStarted( self::THIRD_RELEASE );
 		$releaseState->markDeploymentAsFinished( self::THIRD_RELEASE );
@@ -95,7 +95,7 @@ class PdoReleaseRepositoryTest extends TestCase {
 	}
 
 	public function testWhenEndingADeployment_subsequentReleasesAreNotTouched() {
-		$releaseState = new PdoReleaseRepository( $this->db, self::BRANCH_NAME  );
+		$releaseState = new PdoReleaseRepository( $this->db, self::BRANCH_NAME );
 		$this->insertThreeReleases();
 		$releaseState->markDeploymentAsStarted( self::SECOND_RELEASE );
 		$releaseState->markDeploymentAsFinished( self::SECOND_RELEASE );
@@ -106,7 +106,7 @@ class PdoReleaseRepositoryTest extends TestCase {
 	}
 
 	public function testWhenMarkingADeploymentAsFailed_ItCanBeDeployedAgain() {
-		$releaseState = new PdoReleaseRepository( $this->db, self::BRANCH_NAME  );
+		$releaseState = new PdoReleaseRepository( $this->db, self::BRANCH_NAME );
 		$this->insertFirstRelease();
 		$releaseState->markDeploymentAsStarted( self::FIRST_RELEASE );
 		$releaseState->markDeploymentAsFailed( self::FIRST_RELEASE );

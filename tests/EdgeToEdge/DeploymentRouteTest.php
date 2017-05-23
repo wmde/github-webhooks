@@ -62,7 +62,7 @@ class DeploymentRouteTest extends WebRouteTestCase  {
 	}
 
 	private function getPayloadWithDifferentRepositoryName() {
-		return str_replace( 'wmde/FundraisingFrontend', 'wmde/FundraisingBackend', $this->getValidPayload());
+		return str_replace( 'wmde/FundraisingFrontend', 'wmde/FundraisingBackend', $this->getValidPayload() );
 	}
 
 }
