@@ -2,11 +2,12 @@
 
 namespace WMDE\Fundraising\Deployment\Tests\Integration;
 
+use PHPUnit\Framework\TestCase;
 use WMDE\Fundraising\Deployment\PdoReleaseRepository;
 use WMDE\Fundraising\Deployment\ReleaseStateWriter;
 use WMDE\Fundraising\Deployment\Tests\TestEnvironment;
 
-class PdoReleaseRepositoryTest extends \PHPUnit_Framework_TestCase {
+class PdoReleaseRepositoryTest extends TestCase {
 	
 	const BRANCH_NAME = 'testBranch';
 	const FIRST_RELEASE = 'deadbeef';

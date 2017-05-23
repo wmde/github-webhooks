@@ -2,11 +2,12 @@
 
 namespace WMDE\Fundraising\Deployment\Tests\Unit;
 
+use PHPUnit\Framework\TestCase;
 use WMDE\Fundraising\Deployment\Deployer;
 use WMDE\Fundraising\Deployment\ReleaseRepository;
 use Symfony\Component\Process\Process;
 
-class DeployerTest extends \PHPUnit_Framework_TestCase {
+class DeployerTest extends TestCase {
 
 	const RELEASE_ID = 'deadbeef';
 	const PROCESS_ERROR_MESSAGE = 'MAWrror';

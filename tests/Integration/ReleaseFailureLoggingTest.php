@@ -2,17 +2,18 @@
 
 namespace WMDE\Fundraising\Deployment\Tests\Integration;
 
+use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
 use Symfony\Component\Process\Process;
-use WMDE\Fundraising\Deployment\Tests\TestDoubles\LoggerSpy;
 use WMDE\Fundraising\Deployment\Tests\TestEnvironment;
 use WMDE\Fundraising\Deployment\TopLevelFactory;
+use WMDE\PsrLogTestDoubles\LoggerSpy;
 
 /**
  * @license GNU GPL v2+
  * @author Jeroen De Dauw < jeroendedauw@gmail.com >
  */
-class ReleaseFailureLoggingTest extends \PHPUnit_Framework_TestCase {
+class ReleaseFailureLoggingTest extends TestCase {
 
 	const BRANCH_NAME = 'master';
 
@@ -29,7 +30,7 @@ class ReleaseFailureLoggingTest extends \PHPUnit_Framework_TestCase {
 		$factory->newDeployer( self::BRANCH_NAME )->run( $command );
 
 		$this->assertNotEmpty( $loggerSpy->getLogCalls() );
-		$this->assertSame( LogLevel::ALERT, $loggerSpy->getLogCalls()[0][0] );
+		$this->assertSame( LogLevel::ALERT, $loggerSpy->getLogCalls()->getFirstCall()->getLevel() );
 	}
 
 	private function insertRelease( TopLevelFactory $factory ) {
