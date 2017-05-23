@@ -4,6 +4,7 @@ declare( strict_types = 1 );
 
 namespace WMDE\Fundraising\Deployment\Tests\EdgeToEdge;
 
+use PHPUnit\Framework\TestCase;
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Client;
@@ -13,7 +14,7 @@ use WMDE\Fundraising\Deployment\TopLevelFactory;
 /**
  * @licence GNU GPL v2+
  */
-abstract class WebRouteTestCase extends \PHPUnit_Framework_TestCase {
+abstract class WebRouteTestCase extends TestCase {
 
 	const DISABLE_DEBUG = false;
 	const ENABLE_DEBUG = true;
