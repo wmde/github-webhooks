@@ -6,7 +6,7 @@ use Symfony\Component\HttpFoundation\Response;
 use WMDE\Fundraising\Deployment\ReleaseStateWriter;
 use WMDE\Fundraising\Deployment\TopLevelFactory;
 
-class DeploymentRouteTest extends WebRouteTestCase  {
+class DeploymentRouteTest extends WebRouteTestCase {
 
 	public function testGivenMissingGithubHeaders_requestIsRejected() {
 		$client = $this->createClient();

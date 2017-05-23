@@ -2,21 +2,19 @@ language: php
 
 matrix:
   include:
-  - php: 7
+  - php: 7.1
     env: DB=sqlite
   fast_finish: true
 
 sudo: false
 
-install:
-  - travis_retry composer install
+install: travis_retry composer install
 
-script:
-  - composer ci
+script: composer ci
 
 cache:
   directories:
-  - "$HOME/.composer/cache"
+    - "$HOME/.composer/cache"
 
 notifications:
   email:
