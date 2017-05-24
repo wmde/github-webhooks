@@ -6,7 +6,7 @@ use Symfony\Component\HttpFoundation\Response;
 use WMDE\Fundraising\Deployment\ReleaseStateWriter;
 use WMDE\Fundraising\Deployment\TopLevelFactory;
 
-class DeploymentRouteTest extends WebRouteTestCase  {
+class DeploymentRouteTest extends WebRouteTestCase {
 
 	public function testGivenMissingGithubHeaders_requestIsRejected() {
 		$client = $this->createClient();
@@ -62,7 +62,7 @@ class DeploymentRouteTest extends WebRouteTestCase  {
 	}
 
 	private function getPayloadWithDifferentRepositoryName() {
-		return str_replace( 'wmde/FundraisingFrontend', 'wmde/FundraisingBackend', $this->getValidPayload());
+		return str_replace( 'wmde/FundraisingFrontend', 'wmde/FundraisingBackend', $this->getValidPayload() );
 	}
 
 }

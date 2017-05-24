@@ -20,7 +20,7 @@ class DeployerTest extends TestCase {
 		$process->expects( $this->never() )
 			->method( 'run' );
 
-		$deployer = new Deployer( $releaseState);
+		$deployer = new Deployer( $releaseState );
 		$deployer->run( $process );
 	}
 
@@ -31,7 +31,7 @@ class DeployerTest extends TestCase {
 		$process->expects( $this->once() )
 			->method( 'run' );
 
-		$deployer = new Deployer( $releaseState);
+		$deployer = new Deployer( $releaseState );
 		$deployer->run( $process );
 	}
 
@@ -44,7 +44,7 @@ class DeployerTest extends TestCase {
 		$process->expects( $this->never() )
 			->method( 'run' );
 
-		$deployer = new Deployer( $releaseState);
+		$deployer = new Deployer( $releaseState );
 		$deployer->run( $process );
 	}
 
@@ -75,7 +75,7 @@ class DeployerTest extends TestCase {
 			->method( 'markDeploymentAsFailed' )
 			->with( $this->equalTo( self::RELEASE_ID ) );
 
-		$deployer = new Deployer( $releaseState);
+		$deployer = new Deployer( $releaseState );
 		$deployer->run( $this->newFailingDeployProcess() );
 	}
 

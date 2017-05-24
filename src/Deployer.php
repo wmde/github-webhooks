@@ -1,8 +1,9 @@
 <?php
 
-declare(strict_types = 1);
+declare( strict_types = 1 );
 
 namespace WMDE\Fundraising\Deployment;
+
 use Symfony\Component\Process\Process;
 
 /**

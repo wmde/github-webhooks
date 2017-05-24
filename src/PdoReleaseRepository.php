@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare( strict_types = 1 );
 
 namespace WMDE\Fundraising\Deployment;
 
@@ -20,13 +20,13 @@ class PdoReleaseRepository implements ReleaseRepository {
 
 	public function hasUndeployedReleases(): bool {
 		$stmt = $this->db->prepare( 'SELECT COUNT(*) FROM releases WHERE branch = :branchName AND ts_ended IS NULL AND ts_started IS NULL' );
-		$stmt->execute( ['branchName' =>  $this->branchName ] );
+		$stmt->execute( [ 'branchName' => $this->branchName ] );
 		return $stmt->fetchColumn() > 0;
 	}
 
 	public function deploymentInProcess(): bool {
 		$stmt = $this->db->prepare( 'SELECT COUNT(*) FROM releases WHERE branch = :branchName AND ts_ended IS NULL AND ts_started IS NOT NULL' );
-		$stmt->execute( ['branchName' =>  $this->branchName ] );
+		$stmt->execute( [ 'branchName' => $this->branchName ] );
 		return $stmt->fetchColumn() > 0;
 	}
 
@@ -34,7 +34,7 @@ class PdoReleaseRepository implements ReleaseRepository {
 		$stmt = $this->db->prepare(
 			'SELECT refid FROM releases WHERE ts_ended IS NULL AND ts_started IS NULL AND branch = :branchName ORDER BY ts_added DESC LIMIT 1'
 		);
-		$stmt->execute( ['branchName' =>  $this->branchName ] );
+		$stmt->execute( [ 'branchName' => $this->branchName ] );
 		return $stmt->fetchColumn();
 	}
 
