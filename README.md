@@ -4,11 +4,17 @@
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/wmde/github-webhooks/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/wmde/github-webhooks/?branch=master)
 [![Code Coverage](https://scrutinizer-ci.com/g/wmde/github-webhooks/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/wmde/github-webhooks/?branch=master)
 
-This repo contains code to handle GitHub webhooks. Actions that have long processing times are done by a CLI script.
+Continuous deployment for the WMDE fundraising projects.
 
-Functionality:
+At present only the master and production branches of the FundraisingFrontend application are supported. 
 
-- Handle pushes to the master and production branch of the Fundraising application to deploy the new version to the test and production servers.
+## High level workflow
+
+* The application exposes a `/deploy` endpoint which gets called by GitHub webhooks.
+* The `/deploy` endpoint saves the data it got, when relevant, into a database table.
+* Something (i.e. Cron) invokes one of the deployment scripts in `/cli`
+* The deployment script checks if there is something that needs deploying,
+  and if so, executes an (Ansible) command that takes care of deployment.
 
 ## Running the tests
 
